@@ -140,7 +140,7 @@ with right_col:
         st.markdown("*Demo accounts:* admin/password123  or  admin/1234  or user/user123")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    st.stop()
+st.stop()
 # ---------------- Load dataset path & model ----------------
 dataset_path = find_dataset_path()
 model = load_model()
@@ -225,4 +225,5 @@ with col2:
 st.markdown("---")
 
 st.markdown("*Hints:* If model missing, either run python model_training.py in project folder or click sidebar 'Train model now'. Make sure cricket_dataset.csv is present and columns match exactly: Matches, Runs, Batting Avg, Strike Rate, Wickets, Economy, Best Bowling, Stumpings, Catches, Market Value (CR).")
+
 
