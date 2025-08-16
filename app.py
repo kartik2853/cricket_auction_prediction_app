@@ -114,10 +114,12 @@ if not st.session_state.logged_in:
 
     # Left side image (replace with your own)
     with left_col:
-        st.image("cricket_image.jpg", width =100,use_container_width=True, caption="Welcome to IPL Auction Predictor")  # apni image ka naam/path de
+        img_path = os.path.join(os.path.dirname(__file__), "cricket_image.jpg")
+st.image(img_path, use_container_width=True, caption="Welcome to IPL Auction Predictor")
+
 
     # Right side login form
-    with right_col:
+with right_col:
         st.markdown("<div class='login-card'>", unsafe_allow_html=True)
         st.markdown("<h1 style='text-align:center; color:#f6b01e;'>🏏 IPL Auction Predictor</h1>", unsafe_allow_html=True)
         st.markdown("<h3 style='text-align:center; color:#333; margin-bottom:16px;'>Login to Continue</h3>", unsafe_allow_html=True)
@@ -223,3 +225,4 @@ with col2:
 st.markdown("---")
 
 st.markdown("*Hints:* If model missing, either run python model_training.py in project folder or click sidebar 'Train model now'. Make sure cricket_dataset.csv is present and columns match exactly: Matches, Runs, Batting Avg, Strike Rate, Wickets, Economy, Best Bowling, Stumpings, Catches, Market Value (CR).")
+
