@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 # ---------------- Page config ----------------
 st.set_page_config(page_title="IPL Auction Predictor", page_icon="🏏", layout="wide")
 
-# ---------------- CSS (keep login look same + glass inputs) ----------------
+# ---------------- CSS ----------------
 PAGE_CSS = """
 <style>
 body {
@@ -74,19 +74,19 @@ def load_model(path="model.pkl"):
     return None
 
 def train_and_save_model(dataset_path, save_path="model.pkl"):
-    # Load dataset
     df = pd.read_csv(dataset_path)
     features = ["Matches","Runs","Batting Avg","Strike Rate","Wickets","Economy","Best Bowling","Stumpings","Catches"]
     X = df[features]
     y = df["Market Value (CR)"]
-    # simple train/test
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     model = RandomForestRegressor(n_estimators=200, random_state=42)
     model.fit(X_train, y_train)
+
     preds = model.predict(X_test)
     rmse = mean_squared_error(y_test, preds, squared=False)
     r2 = r2_score(y_test, preds)
-    # save
+
     with open(save_path, "wb") as f:
         pickle.dump(model, f)
     return model, rmse, r2
@@ -106,24 +106,20 @@ def find_similar_players(df, input_vec, topk=3):
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# Allow both common demo creds so user won't get stuck
-CREDENTIALS = {"admin":"password123", "user":"user123", "admin2":"1234", "admin":"1234"}  # admin duplicated intentionally - last wins
-
-# ---------------- LOGIN PAGE (image left + form right) ----------------
+# ---------------- LOGIN PAGE ----------------
 if not st.session_state.logged_in:
     left_col, right_col = st.columns([1, 1])
 
-    # Left side image (replace with your own)
+    # Left side image
     with left_col:
-        Img_path = os.path.join(os.path.dirname(__file__), "cricket_image.jpg")
-st.image(Img_path, use_container_width=True, caption="Welcome to IPL Auction Predictor")
-
+        st.image(IMG_PATH, use_container_width=True, caption="Welcome to IPL Auction Predictor")
 
     # Right side login form
-with right_col:
+    with right_col:
         st.markdown("<div class='login-card'>", unsafe_allow_html=True)
         st.markdown("<h1 style='text-align:center; color:#f6b01e;'>🏏 IPL Auction Predictor</h1>", unsafe_allow_html=True)
         st.markdown("<h3 style='text-align:center; color:#333; margin-bottom:16px;'>Login to Continue</h3>", unsafe_allow_html=True)
+
         username = st.text_input("Username", placeholder="Enter username")
         password = st.text_input("Password", type="password", placeholder="Enter password")
 
@@ -131,34 +127,33 @@ with right_col:
             ok = False
             if (username == "admin" and password in ["password123","1234"]) or (username == "user" and password == "user123"):
                 ok = True
+
             if ok:
                 st.session_state.logged_in = True
                 st.success("Login Successful! Redirecting...")
-                st.experimental_rerun() if hasattr(st, "experimental_rerun") else st.rerun()
+                st.rerun()
             else:
                 st.error("Invalid username or password 🚫")
 
         st.markdown("*Demo accounts:* admin/password123  or  admin/1234  or user/user123")
         st.markdown("</div>", unsafe_allow_html=True)
 
-st.stop()
+    st.stop()   # ✅ ensure this is inside the if block
+
 # ---------------- Load dataset path & model ----------------
 dataset_path = find_dataset_path()
 model = load_model()
 
 # ---------------- PREDICTION PAGE ----------------
-# Top header
 st.markdown("<h1 style='text-align:center; color:#f6b01e;'>🏆 IPL Auction Price Prediction</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align:center; color:#444; margin-bottom:18px;'>Fill all fields (left) and get predicted Market Value (in Crores)</h4>", unsafe_allow_html=True)
 
-
-
-# layout: left form, right graph
 col1, col2 = st.columns([1,1])
 
 with col1:
     st.markdown("<div class='result-card'>", unsafe_allow_html=True)
     st.markdown("### 📝 Player Details (all fields required)")
+
     player_name = st.text_input("Player Name (optional)")
     matches = st.number_input("Matches", min_value=0, step=1, value=0)
     runs = st.number_input("Runs", min_value=0, step=1, value=0)
@@ -172,7 +167,6 @@ with col1:
 
     st.markdown("---")
     if st.button("💰 Predict Price (Use model)"):
-        # check model
         if model is None:
             st.error("Model not found. Please train model first (sidebar) or run model_training.py in project folder.")
         else:
@@ -180,9 +174,9 @@ with col1:
             try:
                 pred = model.predict(features)[0]
                 st.success(f"🏆 Predicted Market Value: ₹ {pred:.2f} Crores")
-                conf = 60 + min(35, int(np.clip(pred, 0, 35)))  # rough confidence heuristic
+                conf = 60 + min(35, int(np.clip(pred, 0, 35)))
                 st.info(f"Confidence (estimate): {conf}%")
-                # allow download as CSV
+
                 out_df = pd.DataFrame([{
                     "Player Name": player_name,
                     "Matches": matches, "Runs": runs, "Batting Avg": bat_avg, "Strike Rate": strike_rate,
@@ -199,7 +193,6 @@ with col2:
     st.markdown("<div class='result-card'>", unsafe_allow_html=True)
     st.markdown("### 📈 Player Performance Visualization")
 
-    # Create a bar chart for the provided metrics
     metrics = ["Matches","Runs","Bat Avg","Strike Rate","Wickets","Economy","Best Bowling","Stumpings","Catches"]
     values = [matches, runs, bat_avg, strike_rate, wickets, economy, best_bowling, stumpings, catches]
     fig, ax = plt.subplots(figsize=(7,4))
@@ -210,7 +203,6 @@ with col2:
     ax.grid(axis='y', alpha=0.2)
     st.pyplot(fig, use_container_width=True)
 
-    # If dataset exists show similar players
     if dataset_path and os.path.exists(dataset_path):
         try:
             df_all = pd.read_csv(dataset_path)
@@ -218,14 +210,10 @@ with col2:
             st.markdown("#### 🔎 Similar Players (from dataset)")
             for i, row in sim.iterrows():
                 st.markdown(f"<div class='small-card'><b>{row['Player Name']}</b> — Market Value: ₹ {row['Market Value (CR)']:.2f} CR</div>", unsafe_allow_html=True)
-        except Exception as e:
+        except Exception:
             st.info("Could not compute similar players (check dataset format).")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Footer / hints
+# ---------------- Footer ----------------
 st.markdown("---")
-
 st.markdown("*Hints:* If model missing, either run python model_training.py in project folder or click sidebar 'Train model now'. Make sure cricket_dataset.csv is present and columns match exactly: Matches, Runs, Batting Avg, Strike Rate, Wickets, Economy, Best Bowling, Stumpings, Catches, Market Value (CR).")
-
-
-
