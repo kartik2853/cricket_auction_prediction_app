@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+IMG_PATH = os.path.join(os.path.dirname(__file__), "cricket_image.jpg")
 import pickle
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
@@ -114,8 +115,8 @@ if not st.session_state.logged_in:
 
     # Left side image (replace with your own)
     with left_col:
-        img_path = os.path.join(os.path.dirname(__file__), "cricket_image.jpg")
-st.image(img_path, use_container_width=True, caption="Welcome to IPL Auction Predictor")
+        Img_path = os.path.join(os.path.dirname(__file__), "cricket_image.jpg")
+st.image(Img_path, use_container_width=True, caption="Welcome to IPL Auction Predictor")
 
 
     # Right side login form
@@ -225,5 +226,6 @@ with col2:
 st.markdown("---")
 
 st.markdown("*Hints:* If model missing, either run python model_training.py in project folder or click sidebar 'Train model now'. Make sure cricket_dataset.csv is present and columns match exactly: Matches, Runs, Batting Avg, Strike Rate, Wickets, Economy, Best Bowling, Stumpings, Catches, Market Value (CR).")
+
 
 
